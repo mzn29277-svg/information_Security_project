@@ -1,3 +1,4 @@
+
 # 🔐 CipherKit — Security Toolkit
 
 A comprehensive, open-source security and cryptography toolkit built with **Flask** and deployed on **Vercel**. Perfect for students, educators, and security enthusiasts to learn about encryption, hashing, encoding, and password security.
@@ -18,6 +19,9 @@ A comprehensive, open-source security and cryptography toolkit built with **Flas
   - Entropy calculation
   - Crack time estimation (10 billion guesses/second)
   - Detailed criteria checks (length, character types, no repeats, etc.)
+ 
+  - <img width="1895" height="899" alt="image" src="https://github.com/user-attachments/assets/f7ef410a-9544-400e-a8b7-0ccd87ca3718" />
+
 
 ### #️⃣ Hash Engine
 Generate and compare hashes using multiple algorithms:
@@ -26,12 +30,18 @@ Generate and compare hashes using multiple algorithms:
 - Batch generate all hashes at once
 - Copy-to-clipboard for quick sharing
 
+- <img width="1895" height="906" alt="image" src="https://github.com/user-attachments/assets/4355681b-7f90-4b8d-b3ed-528bb28af01e" />
+
+
 ### 🔀 Encoding Tools
 Encode and decode with various formats:
 - **Base64** — Standard base64 encoding/decoding
 - **Hex** — Convert text to hexadecimal and back
 - **Binary** — 8-bit binary representation
 - **URL Encoding** — Percent-encoding for URLs
+
+- <img width="1898" height="898" alt="image" src="https://github.com/user-attachments/assets/192a78b4-73d3-45b8-b8ab-2a39e1359776" />
+
 
 ### 🔐 Cipher Suite
 Classical and modern encryption methods:
@@ -42,17 +52,26 @@ Classical and modern encryption methods:
 - **Morse Code** — Encode/decode Morse code
 - **HMAC** — Hash-based message authentication (SHA-256, SHA-512, SHA-1)
 
+- <img width="1901" height="921" alt="image" src="https://github.com/user-attachments/assets/87731fed-b76e-471c-ac29-13d3106c00f0" />
+
+
 ### 🔍 Breach Checker
 - Check if a password has been compromised in known data breaches
 - Uses the **Pwned Passwords API** by Troy Hunt (haveibeenpwned.com)
 - Shows breach count and severity level
 - Privacy-focused: only hash prefix is sent (k-anonymity model)
 
+- <img width="1893" height="871" alt="image" src="https://github.com/user-attachments/assets/dfa3d7da-2e70-4410-b308-733ca7fb6c90" />
+
+
 ### 🔢 Number Base Converter
 Convert between number systems:
 - **Binary, Octal, Decimal, Hexadecimal** (and custom bases up to 36)
 - View all representations simultaneously
 - Educational tool for understanding number systems
+
+- <img width="1899" height="866" alt="image" src="https://github.com/user-attachments/assets/cf7a7657-707a-46cf-b16d-ca72d3d49d86" />
+
 
 ### 🎨 Beautiful UI
 - **Dark theme** with cyberpunk aesthetic
