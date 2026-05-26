@@ -2,7 +2,7 @@
 
 A comprehensive, open-source security and cryptography toolkit built with **Flask** and deployed on **Vercel**. Perfect for students, educators, and security enthusiasts to learn about encryption, hashing, encoding, and password security.
 
-**Live Demo:** [cipherkit.vercel.app](https://cipherkit.vercel.app)
+**Live Demo:** https://cipher-kit.vercel.app/
 
 ---
 
