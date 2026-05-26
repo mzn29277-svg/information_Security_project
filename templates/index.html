@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CipherKit — Security Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #080c10;
+  --surface: #0d1117;
+  --card:    #111820;
+  --border:  #1e2d3d;
+  --accent:  #00d4aa;
+  --accent2: #0084ff;
+  --accent3: #ff4d6d;
+  --accent4: #a855f7;
+  --amber:   #f59e0b;
+  --text:    #e0eaf5;
+  --muted:   #5a7a99;
+  --mono:    'Share Tech Mono', monospace;
+  --sans:    'Syne', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+/* Grid bg */
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,212,170,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,0.025) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0}
+
+/* Animated accent glow top */
+body::after{content:'';position:fixed;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),var(--accent),transparent);
+  z-index:100;animation:glow-sweep 4s ease-in-out infinite}
+@keyframes glow-sweep{0%,100%{opacity:.4}50%{opacity:1}}
+
+.wrap{position:relative;z-index:1}
+
+/* ── HEADER ── */
+header{padding:22px 36px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  background:rgba(8,12,16,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{width:42px;height:42px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;font-size:19px;
+  box-shadow:0 0 24px rgba(0,212,170,.35),0 0 48px rgba(0,212,170,.1)}
+.logo h1{font-size:1.55rem;font-weight:800;letter-spacing:-.5px}
+.logo h1 span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:12px}
+.badge{font-family:var(--mono);font-size:.68rem;color:var(--accent);
+  border:1px solid rgba(0,212,170,.35);padding:4px 10px;border-radius:4px;letter-spacing:2px;text-transform:uppercase}
+.live-clock{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:1px}
+
+/* ── NAV ── */
+nav{padding:0 36px;border-bottom:1px solid var(--border);display:flex;gap:0;
+  overflow-x:auto;scrollbar-width:none;background:rgba(13,17,23,.7);backdrop-filter:blur(8px)}
+nav::-webkit-scrollbar{display:none}
+
+.nav-tab{padding:15px 22px;font-family:var(--mono);font-size:.76rem;letter-spacing:1px;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .2s;white-space:nowrap;user-select:none;
+  display:flex;align-items:center;gap:8px}
+.nav-tab:hover{color:var(--text);background:rgba(0,212,170,.03)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,212,170,.05)}
+.nav-tab .tab-num{font-size:.62rem;opacity:.5}
+
+/* ── MAIN ── */
+main{max-width:900px;margin:0 auto;padding:44px 24px 80px}
+.panel{display:none;animation:fadeUp .3s ease}
+.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Panel header */
+.panel-header{margin-bottom:28px}
+.panel-eyebrow{font-family:var(--mono);font-size:.7rem;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px}
+.panel-eyebrow::before{content:'';width:20px;height:1px;background:var(--muted)}
+.panel-header h2{font-size:1.9rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+.panel-header p{color:var(--muted);font-family:var(--mono);font-size:.8rem;line-height:1.6}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:26px;margin-bottom:18px;transition:border-color .2s}
+.card:hover{border-color:rgba(0,212,170,.15)}
+.card-title{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);font-family:var(--mono);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── INPUTS ── */
+input[type=text],input[type=number],input[type=password],textarea,select{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:11px 15px;color:var(--text);
+  font-family:var(--mono);font-size:.88rem;outline:none;
+  transition:border-color .2s,box-shadow .2s;resize:vertical}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,170,.08)}
+textarea{min-height:80px;line-height:1.6}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a7a99' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;appearance:none;padding-right:32px}
+select option{background:var(--card)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;
+  border-radius:8px;font-family:var(--mono);font-size:.8rem;letter-spacing:1px;
+  cursor:pointer;border:none;transition:all .2s;font-weight:600;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#00f0c0;transform:translateY(-1px);box-shadow:0 4px 18px rgba(0,212,170,.3)}
+.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-secondary:hover{background:rgba(0,212,170,.07)}
+.btn-blue{background:var(--accent2);color:#fff}
+.btn-blue:hover{background:#0099ff;transform:translateY(-1px);box-shadow:0 4px 18px rgba(0,132,255,.3)}
+.btn-danger{background:transparent;color:var(--accent3);border:1px solid var(--accent3)}
+.btn-danger:hover{background:rgba(255,77,109,.07)}
+.btn-purple{background:var(--accent4);color:#fff}
+.btn-purple:hover{background:#b06bff;transform:translateY(-1px)}
+.btn-amber{background:var(--amber);color:#000}
+.btn-amber:hover{background:#fbbf24;transform:translateY(-1px)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+.btn-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+
+/* ── OUTPUT BOX ── */
+.output-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:13px 15px;font-family:var(--mono);font-size:.87rem;
+  word-break:break-all;min-height:46px;margin-top:13px;
+  position:relative;cursor:pointer;transition:border-color .2s;line-height:1.6}
+.output-box:hover{border-color:var(--accent)}
+.output-box .copy-hint{position:absolute;top:8px;right:10px;
+  font-size:.65rem;color:var(--muted);letter-spacing:1px}
+.output-box .out-text{color:var(--accent)}
+.status-msg{font-family:var(--mono);font-size:.72rem;margin-top:6px;
+  opacity:0;transition:opacity .3s;color:var(--accent)}
+.status-msg.visible{opacity:1}
+
+/* ── RANGE SLIDER ── */
+.range-wrap{display:flex;align-items:center;gap:14px;margin:10px 0}
+input[type=range]{flex:1;appearance:none;height:4px;background:var(--border);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--accent);cursor:pointer;box-shadow:0 0 10px rgba(0,212,170,.5)}
+.range-val{font-family:var(--mono);font-size:.9rem;color:var(--accent);min-width:28px;text-align:right}
+
+/* ── CHECKBOXES ── */
+.checkbox-group{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.check-label{display:flex;align-items:center;gap:7px;font-family:var(--mono);
+  font-size:.78rem;cursor:pointer;color:var(--muted);transition:color .2s;user-select:none}
+.check-label:hover{color:var(--text)}
+.check-label input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
+
+/* ── STRENGTH METER ── */
+.strength-bar-wrap{height:6px;background:var(--border);border-radius:3px;margin:13px 0 7px;overflow:hidden}
+.strength-bar{height:100%;border-radius:3px;transition:width .4s,background .4s;width:0%}
+.strength-label{font-family:var(--mono);font-size:.78rem;margin-bottom:10px}
+
+.criteria-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.criterion{display:flex;align-items:center;gap:8px;font-family:var(--mono);
+  font-size:.74rem;color:var(--muted);transition:color .2s}
+.criterion.met{color:var(--accent)}
+.criterion-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:all .2s}
+.criterion.met .criterion-dot{background:var(--accent);box-shadow:0 0 7px var(--accent)}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;text-align:center}
+.stat-val{font-family:var(--mono);font-size:1.3rem;font-weight:700;color:var(--accent);line-height:1}
+.stat-lbl{font-family:var(--mono);font-size:.65rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* ── HASH TABS ── */
+.hash-tabs{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
+.hash-tab{padding:5px 13px;border-radius:6px;font-family:var(--mono);font-size:.73rem;
+  cursor:pointer;border:1px solid var(--border);color:var(--muted);transition:all .2s;user-select:none}
+.hash-tab:hover{border-color:var(--accent2);color:var(--text)}
+.hash-tab.active{border-color:var(--accent2);color:var(--accent2);background:rgba(0,132,255,.08)}
+
+/* ── HASH ALL TABLE ── */
+.hash-all-table{width:100%;border-collapse:collapse;margin-top:12px}
+.hash-all-table th{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;
+  letter-spacing:1px;color:var(--muted);padding:8px 12px;text-align:left;
+  border-bottom:1px solid var(--border)}
+.hash-all-table td{font-family:var(--mono);font-size:.82rem;padding:9px 12px;
+  border-bottom:1px solid rgba(30,45,61,.4);word-break:break-all;line-height:1.5}
+.hash-all-table tr:hover td{background:rgba(0,212,170,.02)}
+.hash-algo{color:var(--accent2);white-space:nowrap;font-weight:700}
+.hash-val{color:var(--accent)}
+.hash-copy{font-size:.65rem;padding:3px 8px;cursor:pointer;border-radius:4px;
+  background:none;border:1px solid var(--border);color:var(--muted);transition:all .15s}
+.hash-copy:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── CIPHER SELECTOR ── */
+.cipher-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:18px}
+.cipher-card{padding:12px 10px;border:1px solid var(--border);border-radius:10px;
+  text-align:center;cursor:pointer;transition:all .2s;user-select:none}
+.cipher-card:hover{border-color:var(--accent4);background:rgba(168,85,247,.05)}
+.cipher-card.active{border-color:var(--accent4);background:rgba(168,85,247,.1);color:var(--accent4)}
+.cipher-card .c-icon{font-size:1.4rem;margin-bottom:5px}
+.cipher-card .c-name{font-family:var(--mono);font-size:.7rem;letter-spacing:.5px}
+
+/* ── SHIFT DISPLAY ── */
+.shift-display{font-family:var(--mono);font-size:3rem;color:var(--accent);
+  font-weight:700;text-align:center;margin:6px 0;line-height:1}
+
+/* ── BREACH ── */
+.breach-result{display:flex;align-items:center;gap:16px;padding:20px;
+  border-radius:12px;margin-top:14px;border:1px solid var(--border);font-family:var(--mono)}
+.breach-result.safe{border-color:var(--accent);background:rgba(0,212,170,.05)}
+.breach-result.pwned{border-color:var(--accent3);background:rgba(255,77,109,.05)}
+.breach-icon{font-size:2.2rem;flex-shrink:0}
+.breach-title{font-size:1rem;font-weight:700}
+.breach-sub{font-size:.73rem;color:var(--muted);margin-top:4px;line-height:1.6}
+.breach-bar-wrap{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.breach-bar{height:100%;border-radius:2px;transition:width 1s ease}
+
+/* ── CONVERT ── */
+.convert-row{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin:14px 0}
+.convert-arrow{font-size:1.4rem;color:var(--muted);padding-bottom:10px;text-align:center}
+.base-result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.base-result-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px}
+.base-result-label{font-family:var(--mono);font-size:.65rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.base-result-val{font-family:var(--mono);font-size:.88rem;color:var(--accent);word-break:break-all}
+
+/* ── ENCODING TABS ── */
+.enc-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.enc-tab{padding:5px 13px;border-radius:6px;font-family:var(--mono);font-size:.73rem;
+  cursor:pointer;border:1px solid var(--border);color:var(--muted);transition:all .2s;user-select:none}
+.enc-tab.active{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.08)}
+
+/* ── BRUTE FORCE TABLE ── */
+.brute-table{width:100%;border-collapse:collapse;margin-top:10px;font-family:var(--mono)}
+.brute-table th{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+.brute-table td{font-size:.8rem;padding:6px 10px;border-bottom:1px solid rgba(30,45,61,.3)}
+.brute-table td:first-child{color:var(--accent2);width:60px}
+.brute-table tr:hover td{background:rgba(0,212,170,.02);color:var(--accent)}
+
+/* ── MORSE ── */
+.morse-preview{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;margin-top:10px;font-family:var(--mono);font-size:.82rem;
+  color:var(--amber);word-break:break-all;min-height:40px;line-height:1.8}
+
+/* ── SPINNER ── */
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;
+  vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── PRIVACY CARD ── */
+.privacy-card{background:rgba(255,77,109,.04);border:1px solid rgba(255,77,109,.2);
+  border-radius:12px;padding:18px 22px;margin-bottom:16px}
+
+/* ── SEPARATOR ── */
+.sep{border:none;border-top:1px solid var(--border);margin:18px 0}
+
+/* ── INFO ROW ── */
+.info-row{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid rgba(30,45,61,.5);font-family:var(--mono);font-size:.8rem}
+.info-row:last-child{border:none}
+.info-key{color:var(--muted)}
+.info-val{color:var(--text)}
+
+footer{text-align:center;padding:28px 24px;color:var(--muted);font-family:var(--mono);
+  font-size:.68rem;border-top:1px solid var(--border);letter-spacing:1px;position:relative;z-index:1}
+
+@media(max-width:600px){
+  header{padding:16px 18px}
+  nav{padding:0 6px}
+  main{padding:28px 14px 60px}
+  .criteria-grid{grid-template-columns:1fr}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .convert-row{grid-template-columns:1fr}
+  .convert-arrow{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔐</div>
+    <h1>Cipher<span>Kit</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="live-clock" id="clock"></span>
+    <span class="badge">Security Toolkit v2.0</span>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-tab active" onclick="setTab('password',this)">🔑 Password<span class="tab-num">01</span></div>
+  <div class="nav-tab" onclick="setTab('hash',this)">⚙️ Hash Engine<span class="tab-num">02</span></div>
+  <div class="nav-tab" onclick="setTab('encoding',this)">🔄 Encoding<span class="tab-num">03</span></div>
+  <div class="nav-tab" onclick="setTab('cipher',this)">🔤 Ciphers<span class="tab-num">04</span></div>
+  <div class="nav-tab" onclick="setTab('convert',this)">🔢 Base Convert<span class="tab-num">05</span></div>
+  <div class="nav-tab" onclick="setTab('breach',this)">🛡️ Breach Check<span class="tab-num">06</span></div>
+</nav>
+
+<main>
+
+<!-- ═══════════════ 01 PASSWORD ═══════════════ -->
+<div class="panel active" id="panel-password">
+  <div class="panel-header">
+    <div class="panel-eyebrow">Module 01</div>
+    <h2>Password Generator</h2>
+    <p>// cryptographically secure passwords using Python secrets module · real-time strength analysis · crack time estimation</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Generator Configuration</div>
+    <div class="range-wrap">
+      <span style="font-family:var(--mono);font-size:.8rem;color:var(--muted)">Length</span>
+      <input type="range" id="pwLen" min="6" max="128" value="16" oninput="document.getElementById('pwLenVal').textContent=this.value">
+      <span class="range-val" id="pwLenVal">16</span>
+    </div>
+    <div class="checkbox-group">
+      <label class="check-label"><input type="checkbox" id="useUpper" checked> A–Z Uppercase</label>
+      <label class="check-label"><input type="checkbox" id="useLower" checked> a–z Lowercase</label>
+      <label class="check-label"><input type="checkbox" id="useNum" checked> 0–9 Numbers</label>
+      <label class="check-label"><input type="checkbox" id="useSym" checked> !@#$ Symbols</label>
+      <label class="check-label"><input type="checkbox" id="noAmbig"> Exclude ambiguous (0,O,l,I)</label>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="genPassword()">⚡ Generate Secure Password</button>
+      <button class="btn btn-secondary" onclick="genMultiple()">📋 Generate 5</button>
+    </div>
+    <div class="output-box" id="pwOutput" onclick="copyOut('pwOutput')" title="Click to copy">
+      <span class="copy-hint">CLICK TO COPY</span>
+      <span class="out-text" id="pwText" style="color:var(--muted)">— press generate —</span>
+    </div>
+    <div class="status-msg" id="pwStatus">✓ Copied to clipboard!</div>
+    <div id="multiPwList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Strength Analyzer</div>
+    <input type="text" id="strInput" placeholder="Type or paste any password to analyze..." oninput="analyzeStrength(this.value)" autocomplete="off">
+    <div class="strength-bar-wrap"><div class="strength-bar" id="strengthBar"></div></div>
+    <div class="strength-label" id="strengthLabel" style="color:var(--muted)">— awaiting input —</div>
+    <div class="stat-row" id="strengthStats" style="display:none">
+      <div class="stat-box"><div class="stat-val" id="st-entropy">0</div><div class="stat-lbl">Entropy (bits)</div></div>
+      <div class="stat-box"><div class="stat-val" id="st-length">0</div><div class="stat-lbl">Length</div></div>
+      <div class="stat-box"><div class="stat-val" id="st-crack" style="font-size:.85rem">—</div><div class="stat-lbl">Crack Time</div></div>
+    </div>
+    <div class="criteria-grid" style="margin-top:14px">
+      <div class="criterion" id="c-len"><div class="criterion-dot"></div>Min 8 characters</div>
+      <div class="criterion" id="c-upper"><div class="criterion-dot"></div>Uppercase (A-Z)</div>
+      <div class="criterion" id="c-lower"><div class="criterion-dot"></div>Lowercase (a-z)</div>
+      <div class="criterion" id="c-num"><div class="criterion-dot"></div>Numbers (0-9)</div>
+      <div class="criterion" id="c-sym"><div class="criterion-dot"></div>Special character</div>
+      <div class="criterion" id="c-long"><div class="criterion-dot"></div>12+ characters</div>
+      <div class="criterion" id="c-vlong"><div class="criterion-dot"></div>16+ characters</div>
+      <div class="criterion" id="c-norepeat"><div class="criterion-dot"></div>No repeated chars</div>
+      <div class="criterion" id="c-noseq"><div class="criterion-dot"></div>No common sequences</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 02 HASH ENGINE ═══════════════ -->
+<div class="panel" id="panel-hash">
+  <div class="panel-header">
+    <div class="panel-eyebrow">Module 02</div>
+    <h2>Hash Engine</h2>
+    <p>// 9 algorithms · MD5 · SHA family · SHA-3 · BLAKE2 · generate all hashes simultaneously</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Algorithm Selection</div>
+    <div class="hash-tabs" id="hashTabs">
+      <div class="hash-tab active" onclick="setHashAlgo('sha256',this)">SHA-256</div>
+      <div class="hash-tab" onclick="setHashAlgo('sha512',this)">SHA-512</div>
+      <div class="hash-tab" onclick="setHashAlgo('sha384',this)">SHA-384</div>
+      <div class="hash-tab" onclick="setHashAlgo('sha3_256',this)">SHA3-256</div>
+      <div class="hash-tab" onclick="setHashAlgo('sha3_512',this)">SHA3-512</div>
+      <div class="hash-tab" onclick="setHashAlgo('blake2b',this)">BLAKE2b</div>
+      <div class="hash-tab" onclick="setHashAlgo('blake2s',this)">BLAKE2s</div>
+      <div class="hash-tab" onclick="setHashAlgo('sha1',this)">SHA-1</div>
+      <div class="hash-tab" onclick="setHashAlgo('md5',this)">MD5</div>
+    </div>
+    <textarea id="hashInput" placeholder="Enter text or paste data to hash..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doHash()">⚙️ Generate Hash</button>
+      <button class="btn btn-blue" onclick="doAllHashes()">📊 Generate All 9</button>
+      <button class="btn btn-danger" onclick="clearHash()">Clear</button>
+    </div>
+    <div class="output-box" id="hashOutput" onclick="copyOut('hashOutput')">
+      <span class="copy-hint">CLICK TO COPY</span>
+      <span class="out-text" id="hashText" style="color:var(--muted)">— hash will appear here —</span>
+    </div>
+    <div class="status-msg" id="hashStatus">✓ Copied!</div>
+  </div>
+
+  <div class="card" id="allHashesCard" style="display:none">
+    <div class="card-title">All Hash Algorithms</div>
+    <table class="hash-all-table" id="allHashesTable"></table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">HMAC Generator</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:6px">MESSAGE</div>
+        <input type="text" id="hmacMsg" placeholder="Message to authenticate..."/>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:6px">SECRET KEY</div>
+        <input type="text" id="hmacKey" placeholder="Secret key..."/>
+      </div>
+    </div>
+    <select id="hmacAlgo" style="margin-bottom:12px">
+      <option value="sha256">HMAC-SHA256</option>
+      <option value="sha512">HMAC-SHA512</option>
+      <option value="sha1">HMAC-SHA1</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn btn-purple" onclick="doHMAC()">🔑 Generate HMAC</button>
+    </div>
+    <div class="output-box" id="hmacOutput" onclick="copyOut('hmacOutput')">
+      <span class="copy-hint">CLICK TO COPY</span>
+      <span class="out-text" id="hmacText" style="color:var(--muted)">— HMAC will appear here —</span>
+    </div>
+    <div class="status-msg" id="hmacStatus">✓ Copied!</div>
+  </div>
+</div>
+
+<!-- ═══════════════ 03 ENCODING ═══════════════ -->
+<div class="panel" id="panel-encoding">
+  <div class="panel-header">
+    <div class="panel-eyebrow">Module 03</div>
+    <h2>Encoding / Decoding</h2>
+    <p>// Base64 · Hex · Binary · URL encoding — encode and decode instantly</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Method</div>
+    <div class="enc-tabs">
+      <div class="enc-tab active" onclick="setEncMethod('base64',this)">Base64</div>
+      <div class="enc-tab" onclick="setEncMethod('hex',this)">Hex</div>
+      <div class="enc-tab" onclick="setEncMethod('binary',this)">Binary</div>
+      <div class="enc-tab" onclick="setEncMethod('url',this)">URL Encode</div>
+    </div>
+    <div id="encMethodInfo" style="font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-bottom:12px;line-height:1.6"></div>
+    <textarea id="encInput" placeholder="Enter text to encode, or encoded data to decode..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doEncode('encode')">🔒 Encode</button>
+      <button class="btn btn-secondary" onclick="doEncode('decode')">🔓 Decode</button>
+      <button class="btn btn-danger" onclick="document.getElementById('encInput').value='';document.getElementById('encOutput').querySelector('.out-text').textContent='— output will appear here —';document.getElementById('encOutput').querySelector('.out-text').style.color='var(--muted)'">Clear</button>
+    </div>
+    <div class="output-box" id="encOutput" onclick="copyOut('encOutput')">
+      <span class="copy-hint">CLICK TO COPY</span>
+      <span class="out-text" style="color:var(--muted)">— output will appear here —</span>
+    </div>
+    <div class="status-msg" id="encStatus">✓ Copied!</div>
+  </div>
+</div>
+
+<!-- ═══════════════ 04 CIPHERS ═══════════════ -->
+<div class="panel" id="panel-cipher">
+  <div class="panel-header">
+    <div class="panel-eyebrow">Module 04</div>
+    <h2>Classical Ciphers</h2>
+    <p>// Caesar · Vigenère · Atbash · ROT13 · Morse Code · Caesar Brute Force</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Select Cipher</div>
+    <div class="cipher-grid">
+      <div class="cipher-card active" id="cc-caesar" onclick="setCipher('caesar',this)">
+        <div class="c-icon">🔤</div><div class="c-name">Caesar</div>
+      </div>
+      <div class="cipher-card" id="cc-vigenere" onclick="setCipher('vigenere',this)">
+        <div class="c-icon">🗝️</div><div class="c-name">Vigenère</div>
+      </div>
+      <div class="cipher-card" id="cc-atbash" onclick="setCipher('atbash',this)">
+        <div class="c-icon">🔁</div><div class="c-name">Atbash</div>
+      </div>
+      <div class="cipher-card" id="cc-rot13" onclick="setCipher('rot13',this)">
+        <div class="c-icon">↩️</div><div class="c-name">ROT-13</div>
+      </div>
+      <div class="cipher-card" id="cc-morse" onclick="setCipher('morse',this)">
+        <div class="c-icon">📡</div><div class="c-name">Morse Code</div>
+      </div>
+      <div class="cipher-card" id="cc-caesar_brute" onclick="setCipher('caesar_brute',this)">
+        <div class="c-icon">💥</div><div class="c-name">Brute Force</div>
+      </div>
+    </div>
+
+    <div id="cipher-info" style="font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.6"></div>
+
+    <!-- Caesar shift -->
+    <div id="caesar-opts">
+      <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:4px">SHIFT AMOUNT</div>
+      <div class="shift-display" id="shiftDisplay">13</div>
+      <input type="range" id="shiftRange" min="1" max="25" value="13" oninput="document.getElementById('shiftDisplay').textContent=this.value" style="width:100%;margin-bottom:12px">
+    </div>
+
+    <!-- Vigenere key -->
+    <div id="vigenere-opts" style="display:none;margin-bottom:12px">
+      <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:6px">CIPHER KEY (letters only)</div>
+      <input type="text" id="vigKey" placeholder="e.g. SECRET" style="text-transform:uppercase">
+    </div>
+
+    <textarea id="cipherInput" placeholder="Enter text..."></textarea>
+
+    <div class="btn-row" id="cipher-btns">
+      <button class="btn btn-primary" onclick="doCipher('encode')">🔒 Encode</button>
+      <button class="btn btn-secondary" onclick="doCipher('decode')">🔓 Decode</button>
+      <button class="btn btn-danger" onclick="clearCipher()">Clear</button>
+    </div>
+
+    <div class="output-box" id="cipherOutput" onclick="copyOut('cipherOutput')" style="margin-top:13px">
+      <span class="copy-hint">CLICK TO COPY</span>
+      <span class="out-text" id="cipherText" style="color:var(--muted)">— result will appear here —</span>
+    </div>
+    <div class="status-msg" id="cipherStatus">✓ Copied!</div>
+
+    <!-- Brute force table -->
+    <div id="bruteForceResult" style="display:none;margin-top:14px">
+      <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">All 25 Possible Decryptions</div>
+      <table class="brute-table" id="bruteTable">
+        <thead><tr><th>Shift</th><th>Decrypted Text</th></tr></thead>
+        <tbody id="bruteTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Morse preview -->
+    <div id="morsePreview" style="display:none;margin-top:10px">
+      <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:4px">MORSE PREVIEW</div>
+      <div class="morse-preview" id="morsePrev"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 05 BASE CONVERT ═══════════════ -->
+<div class="panel" id="panel-convert">
+  <div class="panel-header">
+    <div class="panel-eyebrow">Module 05</div>
+    <h2>Number Base Converter</h2>
+    <p>// convert between Binary · Octal · Decimal · Hexadecimal and any base 2–36</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Quick Convert</div>
+    <div class="convert-row">
+      <div>
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:6px">FROM BASE</div>
+        <select id="fromBase">
+          <option value="2">Binary (Base 2)</option>
+          <option value="8">Octal (Base 8)</option>
+          <option value="10" selected>Decimal (Base 10)</option>
+          <option value="16">Hexadecimal (Base 16)</option>
+          <option value="32">Base 32</option>
+          <option value="36">Base 36</option>
+        </select>
+      </div>
+      <div class="convert-arrow">→</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:6px">TO BASE</div>
+        <select id="toBase">
+          <option value="2" selected>Binary (Base 2)</option>
+          <option value="8">Octal (Base 8)</option>
+          <option value="10">Decimal (Base 10)</option>
+          <option value="16">Hexadecimal (Base 16)</option>
+          <option value="32">Base 32</option>
+          <option value="36">Base 36</option>
+        </select>
+      </div>
+    </div>
+    <input type="text" id="convertInput" placeholder="Enter number to convert..." oninput="doConvert()">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doConvert()">🔢 Convert</button>
+      <button class="btn btn-danger" onclick="document.getElementById('convertInput').value='';document.getElementById('convertAllResults').style.display='none'">Clear</button>
+    </div>
+
+    <div id="convertAllResults" style="display:none;margin-top:14px">
+      <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">All Base Representations</div>
+      <div class="base-result-grid">
+        <div class="base-result-box">
+          <div class="base-result-label">Binary (Base 2)</div>
+          <div class="base-result-val" id="res-bin">—</div>
+        </div>
+        <div class="base-result-box">
+          <div class="base-result-label">Octal (Base 8)</div>
+          <div class="base-result-val" id="res-oct">—</div>
+        </div>
+        <div class="base-result-box">
+          <div class="base-result-label">Decimal (Base 10)</div>
+          <div class="base-result-val" id="res-dec">—</div>
+        </div>
+        <div class="base-result-box">
+          <div class="base-result-label">Hexadecimal (Base 16)</div>
+          <div class="base-result-val" id="res-hex">—</div>
+        </div>
+      </div>
+      <div class="output-box" id="convertOutput" onclick="copyOut('convertOutput')" style="margin-top:12px">
+        <span class="copy-hint">CLICK TO COPY</span>
+        <span class="out-text" id="convertText" style="color:var(--muted)">— result —</span>
+      </div>
+      <div class="status-msg" id="convertStatus">✓ Copied!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 06 BREACH ═══════════════ -->
+<div class="panel" id="panel-breach">
+  <div class="panel-header">
+    <div class="panel-eyebrow">Module 06</div>
+    <h2>Password Breach Checker</h2>
+    <p>// powered by HaveIBeenPwned API · k-Anonymity model · your password NEVER leaves your device</p>
+  </div>
+
+  <div class="privacy-card">
+    <div class="card-title">🔒 How Privacy is Protected</div>
+    <div class="info-row">
+      <span class="info-key">Method</span>
+      <span class="info-val">k-Anonymity (Pwned Passwords)</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">What is sent</span>
+      <span class="info-val">Only first 5 chars of SHA-1 hash</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Your password</span>
+      <span class="info-val" style="color:var(--accent)">NEVER leaves your device</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Database</span>
+      <span class="info-val">800M+ breached passwords</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Check Password</div>
+    <input type="password" id="breachInput" placeholder="Enter password to check against breach database..." autocomplete="off">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doBreach()">🛡️ Check Breach Database</button>
+      <button class="btn btn-danger" onclick="document.getElementById('breachInput').value='';document.getElementById('breachResultBox').innerHTML=''">Clear</button>
+    </div>
+    <div id="breachResultBox" style="margin-top:14px"></div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  CIPHERKIT v2.0 &nbsp;·&nbsp; PYTHON / FLASK BACKEND &nbsp;·&nbsp; INFORMATION SECURITY TOOLKIT &nbsp;·&nbsp; EDUCATIONAL USE ONLY
+</footer>
+</div>
+
+<script>
+// ── STATE ──
+let currentHash = 'sha256';
+let currentEnc = 'base64';
+let currentCipher = 'caesar';
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US', {hour12:false}) + ' UTC';
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ── TAB SWITCHING ──
+function setTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── COPY ──
+function copyOut(id) {
+  const box = document.getElementById(id);
+  const span = box.querySelector('.out-text');
+  if (!span || span.style.color === 'var(--muted)') return;
+  const txt = span.textContent;
+  if (txt.startsWith('—') || txt.startsWith('⚠')) return;
+  navigator.clipboard.writeText(txt).then(() => {
+    const sid = id.replace('Output','Status').replace('output','Status');
+    const msg = document.getElementById(sid.charAt(0).toLowerCase()+sid.slice(1));
+    if (msg) { msg.classList.add('visible'); setTimeout(() => msg.classList.remove('visible'), 2000); }
+  });
+}
+function setOut(id, text, color='var(--accent)') {
+  const box = document.getElementById(id);
+  let span = box.querySelector('.out-text');
+  if (!span) {
+    span = document.createElement('span');
+    span.className = 'out-text';
+    box.appendChild(span);
+  }
+  span.textContent = text;
+  span.style.color = color;
+}
+function showErr(id, msg) { setOut(id, '⚠ ' + msg, '#f59e0b'); }
+
+// ── API CALL ──
+async function api(endpoint, body) {
+  const r = await fetch(endpoint, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+// ══════ 01 PASSWORD ══════
+async function genPassword() {
+  const data = await api('/api/password/generate', {
+    length: parseInt(document.getElementById('pwLen').value),
+    upper: document.getElementById('useUpper').checked,
+    lower: document.getElementById('useLower').checked,
+    nums:  document.getElementById('useNum').checked,
+    syms:  document.getElementById('useSym').checked,
+    exclude_ambiguous: document.getElementById('noAmbig').checked,
+  });
+  if (data.error) { setOut('pwOutput', '⚠ ' + data.error, '#f59e0b'); return; }
+  setOut('pwOutput', data.password);
+  document.getElementById('strInput').value = data.password;
+  renderStrength(data.strength);
+}
+
+async function genMultiple() {
+  const list = document.getElementById('multiPwList');
+  list.innerHTML = '<div style="font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">5 Secure Passwords</div>';
+  for (let i = 0; i < 5; i++) {
+    const data = await api('/api/password/generate', {
+      length: parseInt(document.getElementById('pwLen').value),
+      upper: document.getElementById('useUpper').checked,
+      lower: document.getElementById('useLower').checked,
+      nums:  document.getElementById('useNum').checked,
+      syms:  document.getElementById('useSym').checked,
+    });
+    if (data.error) break;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(30,45,61,.5);font-family:var(--mono);font-size:.82rem;color:var(--accent)';
+    div.innerHTML = `<span>${data.password}</span><button onclick="navigator.clipboard.writeText('${data.password}')" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.65rem;padding:3px 8px;cursor:pointer;border-radius:4px">COPY</button>`;
+    list.appendChild(div);
+  }
+}
+
+async function analyzeStrength(pw) {
+  if (!pw) {
+    document.getElementById('strengthBar').style.width = '0%';
+    document.getElementById('strengthLabel').textContent = '— awaiting input —';
+    document.getElementById('strengthLabel').style.color = 'var(--muted)';
+    document.getElementById('strengthStats').style.display = 'none';
+    ['c-len','c-upper','c-lower','c-num','c-sym','c-long','c-vlong','c-norepeat','c-noseq'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.classList.remove('met');
+    });
+    return;
+  }
+  const data = await api('/api/password/strength', {password: pw});
+  renderStrength(data);
+}
+
+function renderStrength(data) {
+  document.getElementById('strengthBar').style.width = data.pct + '%';
+  document.getElementById('strengthBar').style.background = data.color;
+  document.getElementById('strengthLabel').textContent = data.label;
+  document.getElementById('strengthLabel').style.color = data.color;
+
+  const stats = document.getElementById('strengthStats');
+  stats.style.display = 'grid';
+  document.getElementById('st-entropy').textContent = data.entropy || '—';
+  document.getElementById('st-entropy').style.color = data.color;
+  document.getElementById('st-length').textContent = data.length || '—';
+  document.getElementById('st-length').style.color = data.color;
+  document.getElementById('st-crack').textContent = data.crack_time || '—';
+  document.getElementById('st-crack').style.color = data.color;
+
+  const c = data.criteria || {};
+  const map = {
+    'c-len': c.length_8, 'c-upper': c.uppercase, 'c-lower': c.lowercase,
+    'c-num': c.numbers, 'c-sym': c.symbols, 'c-long': c.length_12,
+    'c-vlong': c.length_16, 'c-norepeat': c.no_repeat, 'c-noseq': c.no_sequence,
+  };
+  Object.entries(map).forEach(([id, met]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('met', !!met);
+  });
+}
+
+// ══════ 02 HASH ══════
+function setHashAlgo(algo, el) {
+  currentHash = algo;
+  document.querySelectorAll('.hash-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function doHash() {
+  const text = document.getElementById('hashInput').value;
+  if (!text.trim()) { showErr('hashOutput', 'Enter text first'); return; }
+  const data = await api('/api/hash/generate', {text, algorithm: currentHash});
+  if (data.error) { showErr('hashOutput', data.error); return; }
+  setOut('hashOutput', data.hash, 'var(--accent2)');
+  document.getElementById('allHashesCard').style.display = 'none';
+}
+
+async function doAllHashes() {
+  const text = document.getElementById('hashInput').value;
+  if (!text.trim()) { showErr('hashOutput', 'Enter text first'); return; }
+  const data = await api('/api/hash/generate', {text, algorithm: 'all'});
+  if (data.error) { showErr('hashOutput', data.error); return; }
+  setOut('hashOutput', `Generated ${Object.keys(data.hashes).length} hashes`, 'var(--accent)');
+
+  const card = document.getElementById('allHashesCard');
+  const table = document.getElementById('allHashesTable');
+  card.style.display = 'block';
+
+  const strength = {'MD5':'Weak','SHA-1':'Weak','SHA-256':'Strong','SHA-384':'Strong',
+                    'SHA-512':'Strong','SHA3-256':'Strong','SHA3-512':'Strong','BLAKE2b':'Strong','BLAKE2s':'Strong'};
+  const scolor = {'Weak':'var(--accent3)','Strong':'var(--accent)'};
+
+  table.innerHTML = `<thead><tr>
+    <th>Algorithm</th><th>Strength</th><th>Hash Value</th><th></th>
+  </tr></thead><tbody>${Object.entries(data.hashes).map(([algo, hash]) => `
+    <tr>
+      <td class="hash-algo">${algo}</td>
+      <td><span style="font-family:var(--mono);font-size:.7rem;color:${scolor[strength[algo]||'Strong']}">${strength[algo]||'Strong'}</span></td>
+      <td class="hash-val">${hash}</td>
+      <td><button class="hash-copy" onclick="navigator.clipboard.writeText('${hash}');this.textContent='✓';setTimeout(()=>this.textContent='COPY',1500)">COPY</button></td>
+    </tr>`).join('')}
+  </tbody>`;
+}
+
+async function doHMAC() {
+  const msg = document.getElementById('hmacMsg').value;
+  const key = document.getElementById('hmacKey').value;
+  const algo = document.getElementById('hmacAlgo').value;
+  if (!msg || !key) { showErr('hmacOutput', 'Message and key required'); return; }
+  const data = await api('/api/cipher', {text: msg, cipher: 'hmac', key, hmac_algo: algo});
+  if (data.error) { showErr('hmacOutput', data.error); return; }
+  setOut('hmacOutput', data.result, 'var(--accent4)');
+}
+
+function clearHash() {
+  document.getElementById('hashInput').value = '';
+  setOut('hashOutput', '— hash will appear here —', 'var(--muted)');
+  document.getElementById('allHashesCard').style.display = 'none';
+}
+
+// ══════ 03 ENCODING ══════
+const encInfo = {
+  base64: 'Encodes binary data as ASCII text. Used in email, HTTP, JWT tokens.',
+  hex: 'Represents each byte as two hex digits (0-9, A-F). Used in hashing, networking.',
+  binary: 'Represents each character as 8 binary digits. Foundation of all digital data.',
+  url: 'Encodes special characters for safe use in URLs (%20 = space, %2F = /, etc.)',
+};
+
+function setEncMethod(method, el) {
+  currentEnc = method;
+  document.querySelectorAll('.enc-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('encMethodInfo').textContent = encInfo[method] || '';
+}
+setEncMethod('base64', document.querySelector('.enc-tab'));
+
+async function doEncode(action) {
+  const text = document.getElementById('encInput').value;
+  if (!text.trim()) { showErr('encOutput', 'Enter text first'); return; }
+  const data = await api('/api/encode', {text, method: currentEnc, action});
+  if (data.error) { showErr('encOutput', data.error); return; }
+  setOut('encOutput', data.result, action === 'encode' ? 'var(--accent)' : 'var(--accent2)');
+}
+
+// ══════ 04 CIPHER ══════
+const cipherInfo = {
+  caesar: 'Substitution cipher — shifts each letter by N positions in the alphabet. Used by Julius Caesar 2000 years ago.',
+  vigenere: 'Polyalphabetic cipher using a keyword. Each letter uses a different shift based on the key.',
+  atbash: 'Mirror cipher — A↔Z, B↔Y, C↔X. Ancient Hebrew cipher, same to encode and decode.',
+  rot13: 'Caesar cipher with shift 13. Encode and decode are identical since 13+13=26.',
+  morse: 'Encodes letters as dots (.) and dashes (-). Used in telegraphy and radio communication.',
+  caesar_brute: 'Tries all 25 possible Caesar shifts — useful when shift is unknown.',
+};
+
+function setCipher(c, el) {
+  currentCipher = c;
+  document.querySelectorAll('.cipher-card').forEach(cc => cc.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cipher-info').textContent = cipherInfo[c] || '';
+
+  // Show/hide options
+  document.getElementById('caesar-opts').style.display = c === 'caesar' ? 'block' : 'none';
+  document.getElementById('vigenere-opts').style.display = c === 'vigenere' ? 'block' : 'none';
+
+  // Brute force / morse have no encode/decode
+  const isBrute = c === 'caesar_brute';
+  const isMorse = c === 'morse';
+  const btns = document.getElementById('cipher-btns');
+  if (isBrute) {
+    btns.innerHTML = `<button class="btn btn-primary" onclick="doCipher('decode')">💥 Brute Force All Shifts</button>
+                      <button class="btn btn-danger" onclick="clearCipher()">Clear</button>`;
+  } else if (isMorse || c === 'atbash' || c === 'rot13') {
+    btns.innerHTML = `<button class="btn btn-primary" onclick="doCipher('encode')">🔒 Encode</button>
+                      ${isMorse ? '<button class="btn btn-secondary" onclick="doCipher(\'decode\')">🔓 Decode</button>' : ''}
+                      <button class="btn btn-danger" onclick="clearCipher()">Clear</button>`;
+  } else {
+    btns.innerHTML = `<button class="btn btn-primary" onclick="doCipher('encode')">🔒 Encode</button>
+                      <button class="btn btn-secondary" onclick="doCipher('decode')">🔓 Decode</button>
+                      <button class="btn btn-danger" onclick="clearCipher()">Clear</button>`;
+  }
+
+  document.getElementById('bruteForceResult').style.display = 'none';
+  document.getElementById('morsePreview').style.display = 'none';
+}
+setCipher('caesar', document.getElementById('cc-caesar'));
+
+async function doCipher(action) {
+  const text = document.getElementById('cipherInput').value;
+  if (!text.trim()) { showErr('cipherOutput', 'Enter text first'); return; }
+
+  const body = {text, cipher: currentCipher, action};
+  if (currentCipher === 'caesar' || currentCipher === 'caesar_brute') {
+    body.shift = parseInt(document.getElementById('shiftRange').value);
+  }
+  if (currentCipher === 'vigenere') {
+    body.key = document.getElementById('vigKey').value;
+    if (!body.key) { showErr('cipherOutput', 'Enter a Vigenere key'); return; }
+  }
+
+  const data = await api('/api/cipher', body);
+  if (data.error) { showErr('cipherOutput', data.error); return; }
+
+  if (currentCipher === 'caesar_brute') {
+    document.getElementById('bruteForceResult').style.display = 'block';
+    const tbody = document.getElementById('bruteTbody');
+    tbody.innerHTML = data.results.map(r =>
+      `<tr><td>${r.shift}</td><td>${esc(r.text)}</td></tr>`
+    ).join('');
+    setOut('cipherOutput', `${data.results.length} decryptions generated`, 'var(--accent)');
+  } else if (currentCipher === 'morse' && action === 'encode') {
+    setOut('cipherOutput', data.result, 'var(--amber)');
+    document.getElementById('morsePrev').textContent = data.result;
+    document.getElementById('morsePreview').style.display = 'block';
+  } else {
+    setOut('cipherOutput', data.result, action === 'encode' ? 'var(--accent)' : 'var(--accent2)');
+    document.getElementById('bruteForceResult').style.display = 'none';
+    document.getElementById('morsePreview').style.display = 'none';
+  }
+}
+
+function clearCipher() {
+  document.getElementById('cipherInput').value = '';
+  setOut('cipherOutput', '— result will appear here —', 'var(--muted)');
+  document.getElementById('bruteForceResult').style.display = 'none';
+  document.getElementById('morsePreview').style.display = 'none';
+}
+
+// ══════ 05 CONVERT ══════
+async function doConvert() {
+  const val = document.getElementById('convertInput').value.trim();
+  const from = parseInt(document.getElementById('fromBase').value);
+  const to = parseInt(document.getElementById('toBase').value);
+  if (!val) { document.getElementById('convertAllResults').style.display = 'none'; return; }
+
+  const data = await api('/api/convert', {value: val, from_base: from, to_base: to});
+  if (data.error) {
+    document.getElementById('convertAllResults').style.display = 'none';
+    setOut('convertOutput', '⚠ ' + data.error, '#f59e0b');
+    return;
+  }
+  document.getElementById('convertAllResults').style.display = 'block';
+  document.getElementById('res-bin').textContent = data.binary || '—';
+  document.getElementById('res-oct').textContent = data.octal || '—';
+  document.getElementById('res-dec').textContent = data.decimal ?? '—';
+  document.getElementById('res-hex').textContent = data.hex || '—';
+  setOut('convertOutput', data.result || data.decimal, 'var(--accent)');
+}
+
+// ══════ 06 BREACH ══════
+async function doBreach() {
+  const pw = document.getElementById('breachInput').value;
+  if (!pw) return;
+  const box = document.getElementById('breachResultBox');
+  box.innerHTML = `<div style="font-family:var(--mono);font-size:.82rem;color:var(--muted);padding:16px 0"><span class="spinner"></span>Checking against 800M+ breached passwords...</div>`;
+
+  const data = await api('/api/breach', {password: pw});
+
+  if (data.error) {
+    box.innerHTML = `<div style="font-family:var(--mono);font-size:.82rem;color:var(--accent3);padding:12px 0">⚠ ${data.error}</div>`;
+    return;
+  }
+
+  if (data.pwned) {
+    const pct = Math.min(100, Math.log10(data.count) / 8 * 100);
+    const sev = data.severity === 'critical' ? 'CRITICAL' : data.severity === 'high' ? 'HIGH' : 'MEDIUM';
+    const sevColor = data.severity === 'critical' ? 'var(--accent3)' : data.severity === 'high' ? '#ff7849' : 'var(--amber)';
+    box.innerHTML = `
+      <div class="breach-result pwned">
+        <div class="breach-icon">🚨</div>
+        <div style="flex:1">
+          <div class="breach-title" style="color:var(--accent3)">PASSWORD COMPROMISED</div>
+          <div class="breach-sub">
+            Found <strong style="color:var(--accent3)">${data.count_formatted}</strong> times in data breaches.<br>
+            Severity: <span style="color:${sevColor}">${sev}</span> &nbsp;·&nbsp; Hash prefix checked: <span style="color:var(--muted)">${data.hash_prefix}*****</span><br>
+            Change this password immediately on all accounts where it is used.
+          </div>
+          <div class="breach-bar-wrap" style="margin-top:10px">
+            <div class="breach-bar" style="width:${pct}%;background:var(--accent3)"></div>
+          </div>
+          <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:4px">Exposure level: ${pct.toFixed(0)}%</div>
+        </div>
+      </div>`;
+  } else {
+    box.innerHTML = `
+      <div class="breach-result safe">
+        <div class="breach-icon">✅</div>
+        <div>
+          <div class="breach-title" style="color:var(--accent)">PASSWORD NOT FOUND IN BREACHES</div>
+          <div class="breach-sub">
+            Not found in any of 800M+ known breached passwords.<br>
+            Hash prefix checked: <span style="color:var(--muted)">${data.hash_prefix}*****</span><br>
+            Still use it wisely — enable 2FA on all important accounts.
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
